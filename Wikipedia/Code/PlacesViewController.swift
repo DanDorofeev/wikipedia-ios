@@ -1823,11 +1823,16 @@ class PlacesViewController: ViewController, UISearchBarDelegate, ArticlePopoverV
     
     // MARK: - Search Suggestions & Completions
     
-    var currentSearchString: String {
+  @objc var currentSearchString: String {
+      get {
         guard let currentSearchString = searchBar.text?.trimmingCharacters(in: NSCharacterSet.whitespacesAndNewlines) else {
-            return ""
+          return ""
         }
         return currentSearchString
+      }
+      set {
+        searchBar.text = newValue
+      }
     }
     
     func updateSearchSuggestions(withCompletions completions: [PlaceSearch], isSearchDone: Bool) {
@@ -2128,7 +2133,12 @@ class PlacesViewController: ViewController, UISearchBarDelegate, ArticlePopoverV
         view.heading = heading.trueHeading
     }
     
-    func zoomAndPanMapView(toLocation location: CLLocation) {
+    @objc public func showLocation(_ location: CLLocation) {      
+      updateViewModeToMap()
+      zoomAndPanMapView(toLocation: location)
+    }
+  
+     func zoomAndPanMapView(toLocation location: CLLocation) {
         let region = [location.coordinate].wmf_boundingRegion(with: 10000)
         mapRegion = region
         if let searchRegion = currentSearchRegion, isDistanceSignificant(betweenRegion: searchRegion, andRegion: region) {

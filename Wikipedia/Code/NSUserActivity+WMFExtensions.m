@@ -59,6 +59,22 @@ __attribute__((annotate("returns_localized_nsstring"))) static inline NSString *
     return activity;
 }
 
++ (instancetype)wmf_namedPlaceActivityWithURL:(NSURL *)activityURL {
+  NSString *latitude = [activityURL wmf_valueForQueryKey:@"latitude"];
+  NSString *longitude = [activityURL wmf_valueForQueryKey:@"longitude"];
+  if (latitude == nil || longitude == nil) {
+    return nil;
+  }
+  NSString *locationName = [activityURL wmf_valueForQueryKey:@"locationName"];
+  NSUserActivity *activity = [self wmf_pageActivityWithName:@"NamedPlace"];
+  NSMutableDictionary *userInfo = activity.userInfo.mutableCopy;
+  userInfo[@"WMFLatitude"] = latitude;
+  userInfo[@"WMFLongitude"] = longitude;
+  userInfo[@"WMFLocationName"] = locationName;
+  activity.userInfo = userInfo;  
+  return activity;
+}
+
 + (instancetype)wmf_placesActivityWithURL:(NSURL *)activityURL {
     NSURLComponents *components = [NSURLComponents componentsWithURL:activityURL resolvingAgainstBaseURL:NO];
     NSURL *articleURL = nil;
@@ -123,6 +139,8 @@ __attribute__((annotate("returns_localized_nsstring"))) static inline NSString *
         return [self wmf_contentActivityWithURL:url];
     } else if ([url.host isEqualToString:@"explore"]) {
         return [self wmf_exploreViewActivity];
+    } else if ([url.host isEqualToString:@"namedPlace"]) {
+      return [self wmf_namedPlaceActivityWithURL:url];
     } else if ([url.host isEqualToString:@"places"]) {
         return [self wmf_placesActivityWithURL:url];
     } else if ([url.host isEqualToString:@"saved"]) {
@@ -211,6 +229,8 @@ __attribute__((annotate("returns_localized_nsstring"))) static inline NSString *
         NSString *page = self.userInfo[@"WMFPage"];
         if ([page isEqualToString:@"Explore"]) {
             return WMFUserActivityTypeExplore;
+        } else if ([page isEqualToString:@"NamedPlace"]) {
+          return WMFUserActivityTypeNamedPlace;
         } else if ([page isEqualToString:@"Places"]) {
             return WMFUserActivityTypePlaces;
         } else if ([page isEqualToString:@"Saved"]) {
@@ -266,6 +286,18 @@ __attribute__((annotate("returns_localized_nsstring"))) static inline NSString *
 
 - (NSURL *)wmf_contentURL {
     return self.userInfo[@"WMFURL"];
+}
+
+- (nullable NSString *)wmf_latitude {
+  return self.userInfo[@"WMFLatitude"];
+}
+
+- (nullable NSString *)wmf_longitude {
+  return self.userInfo[@"WMFLongitude"];
+}
+
+- (nullable NSString *)wmf_locationName {
+  return self.userInfo[@"WMFLocationName"];
 }
 
 + (NSURLComponents *)wmf_baseURLComponentsForActivityOfType:(WMFUserActivityType)type {
